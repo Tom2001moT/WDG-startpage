@@ -232,6 +232,36 @@
             pointer-events: none;
         }
 
+        /* --- AI Modules (Extra LLM Features) --- */
+        .ai-modules {
+            display: flex;
+            gap: 15px;
+            width: 100%;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .ai-module-btn {
+            background: rgba(0, 229, 255, 0.05);
+            border: 1px solid rgba(0, 229, 255, 0.3);
+            color: var(--cyan);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .ai-module-btn:hover {
+            background: rgba(0, 229, 255, 0.2);
+            box-shadow: 0 0 10px rgba(0, 229, 255, 0.4);
+            transform: translateY(-2px);
+        }
+
         /* Quick Links Grid */
         .links-grid {
             display: grid;
@@ -451,6 +481,10 @@
             .header-btn {
                 font-size: 0.85rem;
             }
+            .ai-modules {
+                flex-wrap: wrap;
+                margin-bottom: 5px;
+            }
         }
 
         @media (max-width: 400px) {
@@ -627,6 +661,12 @@
                 <div class="ai-content" id="aiContent"><span class="cursor"></span></div>
             </div>
         </section>
+
+        <!-- AI Interactive Modules -->
+        <div class="ai-modules">
+            <button class="ai-module-btn" id="btnDiagnostic">✨ SYS.DIAGNOSTIC</button>
+            <button class="ai-module-btn" id="btnBriefing">✨ INTEL BRIEFING</button>
+        </div>
 
         <nav class="links-grid">
             <a href="https://github.com" class="link-card">
@@ -847,6 +887,10 @@
         let baseDl = navigator.connection ? navigator.connection.downlink : 150;
         let baseRtt = navigator.connection ? navigator.connection.rtt : 45;
         
+        // Ensure these globals exist for the AI Diagnostic tool
+        let currentTotalSpeed = 0;
+        let currentPingValue = 0;
+
         if (navigator.connection) {
             navigator.connection.addEventListener('change', () => {
                 baseDl = navigator.connection.downlink || 150;
@@ -862,8 +906,15 @@
             const ulSpeed = Math.max(0, baseUl + (Math.random() * jitterUl * 2) - jitterUl);
             const totalSpeed = dlSpeed + ulSpeed;
             
+            // Assign to globals
+            currentTotalSpeed = totalSpeed;
+            
             const pingJitter = baseRtt * 0.1;
             const currentPing = Math.max(1, baseRtt + (Math.random() * pingJitter * 2) - pingJitter);
+            
+            // Assign to globals
+            currentPingValue = currentPing;
+            
             const currentLatency = currentPing + 2 + (Math.random() * 4);
 
             document.getElementById('netTot').textContent = totalSpeed.toFixed(1);
@@ -1022,6 +1073,35 @@
             // Output the response
             typeWriter(responseText, aiContent);
         });
+
+        // --- NEW AI MODULES LOGIC ---
+        const btnDiagnostic = document.getElementById('btnDiagnostic');
+        const btnBriefing = document.getElementById('btnBriefing');
+
+        async function executeAiModule(promptText, loadingText) {
+            aiTerminal.classList.add('active');
+            const activeKey = savedApiKey || "";
+
+            if (!activeKey) {
+                typeWriter("CRITICAL ERROR: NEURAL LINK DISCONNECTED.<br><br>API KEY MISSING. PLEASE CLICK [ CONFIG ] IN THE SYSTEM HEADER TO ESTABLISH CONNECTION.", aiContent, 10);
+                return;
+            }
+
+            aiContent.innerHTML = `${loadingText}...<span class="cursor"></span>`;
+            const responseText = await fetchGeminiWithRetry(promptText, activeKey, savedAiModel);
+            typeWriter(responseText, aiContent);
+        }
+
+        btnDiagnostic.addEventListener('click', () => {
+            const prompt = `You are Aegis, a tactical cyber-deck AI. Analyze these live system vitals: Network Throughput: ${currentTotalSpeed.toFixed(1)} MB/s, Ping: ${Math.round(currentPingValue)}ms, CPU Load: ${Math.round(simCpu)}%, RAM Usage: ${Math.round(simRam)}%. Provide a brief, gritty, 2-sentence tactical diagnostic report on the system's health and readiness.`;
+            executeAiModule(prompt, `ANALYZING LIVE TELEMETRY WITH [ ${savedAiModel.toUpperCase()} ]`);
+        });
+
+        btnBriefing.addEventListener('click', () => {
+            const prompt = `You are Aegis, a tactical cyber-deck AI. Provide a short, gritty 2-sentence daily intel briefing or mission objective for a cyberpunk mercenary logging into their terminal. Make it sound urgent and atmospheric.`;
+            executeAiModule(prompt, `DOWNLOADING SECURE INTEL BRIEFING VIA [ ${savedAiModel.toUpperCase()} ]`);
+        });
+
     </script>
 </body>
 </html>
