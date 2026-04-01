@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WDG-startpage</title>
+    <!-- Importing Sci-Fi Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #030305;
+            --surface: rgba(10, 10, 15, 0.6);
+            --surface-hover: rgba(20, 20, 30, 0.8);
+            --border: rgba(0, 229, 255, 0.15);
+            --border-glow: rgba(0, 229, 255, 0.5);
+            --text-main: #e0f8ff;
+            --text-dim: #7090a0;
+            --cyan: #00e5ff;
+            --purple: #b400ff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: 'Rajdhani', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            overflow-y: auto;
+            padding: 40px 0 120px 0; /* Padding allows scrolling past the bottom status bar */
+            position: relative;
+        }
+
+        /* Animated Background Orbs */
+        .ambient-light {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.4;
+            z-index: 0;
+            animation: float 20s infinite ease-in-out alternate;
+        }
+
+        .orb-1 {
+            width: 400px;
+            height: 400px;
+            background: var(--cyan);
+            top: -100px;
+            left: -100px;
+            animation-delay: 0s;
+        }
+
+        .orb-2 {
+            width: 500px;
+            height: 500px;
+            background: var(--purple);
+            bottom: -150px;
+            right: -100px;
+            animation-delay: -5s;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(50px, 30px) scale(1.1); }
+            100% { transform: translate(-30px, 60px) scale(0.9); }
+        }
+
+        /* Subtle Grid Overlay */
+        .grid-overlay {
+            position: fixed;
+            inset: 0;
+            background-image: 
+                linear-gradient(var(--border) 1px, transparent 1px),
+                linear-gradient(90deg, var(--border) 1px, transparent 1px);
+            background-size: 40px 40px;
+            opacity: 0.15;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Main Container */
+        .container {
+            position: relative;
+            z-index: 10;
+            width: 90%;
+            max-width: 800px;
+            margin: auto 0; /* Automatically centers the container when there is enough vertical space */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
+            padding: 40px 20px;
+            background: var(--surface);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(0, 229, 255, 0.05);
+            animation: bootUp 1s ease-out forwards;
+        }
+
+        @keyframes bootUp {
+            0% { opacity: 0; transform: scale(0.95) translateY(20px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        /* Header / Clock */
+        header {
+            text-align: center;
+        }
+
+        .time {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 5rem;
+            font-weight: 700;
+            letter-spacing: 4px;
+            background: linear-gradient(180deg, #ffffff 0%, var(--cyan) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(0, 229, 255, 0.3);
+            line-height: 1;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: text-shadow 0.3s ease;
+        }
+
+        .time:hover {
+            text-shadow: 0 0 30px rgba(0, 229, 255, 0.6);
+        }
+
+        .date-sys {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--cyan);
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .date-sys::before, .date-sys::after {
+            content: '';
+            height: 1px;
+            width: 30px;
+            background: var(--cyan);
+            opacity: 0.5;
+        }
+
+        /* --- Time Format Toggle --- */
+        .format-toggle {
+            cursor: pointer;
+            color: var(--purple);
+            margin-left: 12px;
+            transition: all 0.3s ease;
+            font-weight: 700;
+        }
+
+        .format-toggle:hover {
+            color: var(--cyan);
+            text-shadow: 0 0 10px var(--cyan);
+        }
+
+        /* Search Module */
+        .search-module {
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .search-form {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 18px 24px 18px 50px;
+            color: var(--text-main);
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.2rem;
+            outline: none;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        .search-input:focus {
+            border-color: var(--cyan);
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.2), inset 0 0 10px rgba(0, 229, 255, 0.1);
+            background: rgba(0, 229, 255, 0.05);
+        }
+
+        .search-input::placeholder {
+            color: var(--text-dim);
+            letter-spacing: 1px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 18px;
+            color: var(--cyan);
+            width: 20px;
+            height: 20px;
+            pointer-events: none;
+        }
+
+        /* Quick Links Grid */
+        .links-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            width: 100%;
+        }
+
+        .link-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--text-main);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .link-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+            transform: skewX(-20deg);
+            transition: 0.5s;
+        }
+
+        .link-card:hover {
+            transform: translateY(-5px);
+            background: var(--surface-hover);
+            border-color: var(--cyan);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4), 0 0 15px rgba(0, 229, 255, 0.2);
+        }
+
+        .link-card:hover::before {
+            left: 200%;
+        }
+
+        .link-icon {
+            width: 32px;
+            height: 32px;
+            fill: currentColor;
+            color: var(--text-dim);
+            transition: color 0.3s ease;
+        }
+
+        .link-card:hover .link-icon {
+            color: var(--cyan);
+            filter: drop-shadow(0 0 8px var(--cyan));
+        }
+
+        .link-name {
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* Status Bar (Bottom) */
+        .status-bar {
+            position: fixed;
+            bottom: 35px;
+            left: 0;
+            width: 100%;
+            padding: 0 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            z-index: 10;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--cyan);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--cyan);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.5; box-shadow: 0 0 4px var(--cyan); }
+            50% { opacity: 1; box-shadow: 0 0 12px var(--cyan); }
+            100% { opacity: 0.5; box-shadow: 0 0 4px var(--cyan); }
+        }
+
+        /* --- Network Stats Styles --- */
+        .net-stats {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .net-stats > span {
+            white-space: nowrap;
+        }
+
+        .highlight-net {
+            color: #00ff66;
+            font-weight: 700;
+            display: inline-block;
+            min-width: 45px;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* --- Graph Styles --- */
+        .graph-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #sysGraph {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+        }
+
+        .graph-legend {
+            display: flex;
+            flex-direction: column;
+            font-size: 0.6rem;
+            line-height: 1.2;
+            font-weight: 700;
+        }
+
+        /* --- Developer Footer --- */
+        .developer-footer {
+            position: fixed;
+            bottom: 10px;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            z-index: 10;
+            text-align: center;
+            width: 100%;
+        }
+
+        .developer-footer a {
+            color: var(--cyan);
+            text-decoration: none;
+            font-weight: 700;
+            transition: all 0.3s ease;
+        }
+
+        .developer-footer a:hover {
+            color: var(--purple);
+            text-shadow: 0 0 10px var(--purple);
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px 15px;
+                gap: 30px;
+                width: 92%;
+            }
+            .time {
+                font-size: 3rem;
+            }
+            .date-sys {
+                font-size: 1rem;
+            }
+            .links-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+            .status-bar {
+                bottom: 35px;
+                gap: 10px;
+                padding: 0 10px;
+            }
+            .status-item {
+                margin-left: 0 !important;
+            }
+            .status-item span {
+                font-size: 0.7rem;
+            }
+            .net-stats {
+                gap: 8px;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .time {
+                font-size: 2.2rem;
+            }
+            .link-card {
+                padding: 15px;
+            }
+            .link-icon {
+                width: 24px;
+                height: 24px;
+            }
+            .link-name {
+                font-size: 0.85rem;
+            }
+        }
+
+        /* --- AI Integration Styles --- */
+        .search-form {
+            gap: 12px;
+        }
+
+        .ai-btn {
+            background: rgba(180, 0, 255, 0.15);
+            border: 1px solid var(--purple);
+            color: var(--text-main);
+            padding: 18px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+        
+        .ai-btn:hover {
+            background: var(--purple);
+            box-shadow: 0 0 15px rgba(180, 0, 255, 0.5);
+            transform: translateY(-2px);
+        }
+        
+        .ai-terminal {
+            margin-top: 20px;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid var(--purple);
+            border-radius: 12px;
+            padding: 20px;
+            display: none;
+            flex-direction: column;
+            gap: 15px;
+            box-shadow: inset 0 0 20px rgba(180, 0, 255, 0.1);
+        }
+        
+        .ai-terminal.active {
+            display: flex;
+            animation: bootUp 0.5s ease-out forwards;
+        }
+        
+        .ai-header {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--purple);
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            border-bottom: 1px solid rgba(180, 0, 255, 0.3);
+            padding-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .ai-content {
+            font-family: monospace;
+            font-size: 1rem;
+            color: var(--text-main);
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+        
+        .cursor {
+            display: inline-block;
+            width: 8px;
+            height: 15px;
+            background: var(--purple);
+            animation: blink 1s step-end infinite;
+            vertical-align: middle;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Ambient Background -->
+    <div class="ambient-light orb-1"></div>
+    <div class="ambient-light orb-2"></div>
+    <div class="grid-overlay"></div>
+
+    <!-- Main Interface -->
+    <main class="container">
+        
+        <header>
+            <div class="time" id="timeDisplay" title="Toggle 12H/24H Format">00:00:00</div>
+            <div class="date-sys">
+                <span id="dateDisplay">SYS.INIT // LOADING</span>
+                <span id="formatToggle" class="format-toggle" title="Toggle 12H/24H Format">[ 24H ]</span>
+            </div>
+        </header>
+
+        <section class="search-module">
+            <form class="search-form" action="https://www.google.com/search" method="GET" id="searchForm">
+                <div style="position: relative; flex-grow: 1; display: flex; align-items: center;">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <input type="text" class="search-input" name="q" id="searchInput" placeholder="EXECUTE QUERY OR ASK AI..." autocomplete="off" autofocus style="width: 100%;">
+                </div>
+                <button type="button" class="ai-btn" id="aiBtn">✨ ASK AI</button>
+            </form>
+            
+            <!-- AI Response Terminal -->
+            <div class="ai-terminal" id="aiTerminal">
+                <div class="ai-header">
+                    <span>AEGIS // NEURAL NET LINK</span>
+                    <span style="cursor: pointer; color: var(--text-dim);" id="closeAi">✕</span>
+                </div>
+                <div class="ai-content" id="aiContent"><span class="cursor"></span></div>
+            </div>
+        </section>
+
+        <nav class="links-grid">
+            <a href="https://github.com" class="link-card">
+                <svg class="link-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+                </svg>
+                <span class="link-name">GitHub</span>
+            </a>
+            <a href="https://youtube.com" class="link-card">
+                <svg class="link-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                </svg>
+                <span class="link-name">Media</span>
+            </a>
+            <a href="https://facebook.com" class="link-card">
+                <svg class="link-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                </svg>
+                <span class="link-name">Facebook</span>
+            </a>
+            <a href="https://instagram.com" class="link-card">
+                <svg class="link-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
+                </svg>
+                <span class="link-name">Instagram</span>
+            </a>
+            <a href="https://whatsapp.com" class="link-card">
+                <svg class="link-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a5.8 5.8 0 00-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                </svg>
+                <span class="link-name">WhatsApp</span>
+            </a>
+            <a href="https://telegram.org" class="link-card">
+                <svg class="link-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.664 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+                </svg>
+                <span class="link-name">Telegram</span>
+            </a>
+            <a href="https://gemini.google.com" class="link-card">
+                <svg class="link-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12.001 0c.264 4.862 3.968 8.636 8.847 8.95-4.88.312-8.583 4.088-8.847 8.948-.264-4.86-3.968-8.636-8.846-8.948C8.033 8.636 11.737 4.862 12.001 0zM18.8 15.2c.16 2.916 2.38 5.181 5.308 5.37-2.928.188-5.148 2.454-5.308 5.368-.158-2.914-2.38-5.18-5.308-5.368 2.928-.189 5.15-2.454 5.308-5.37zM6 16c.12 2.187 1.785 3.886 3.981 4.027C7.785 20.17 6.12 21.868 6 24.055c-.12-2.187-1.785-3.885-3.98-4.028C4.215 19.886 5.88 18.187 6 16z"/>
+                </svg>
+                <span class="link-name">Gemini AI</span>
+            </a>
+            <a href="https://chatgpt.com" class="link-card">
+                <svg class="link-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.073zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.8956zm16.0993 3.8558L12.5973 8.3829l2.0202-1.1686a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.3927-.6813zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L8.809 9.2297V6.8974a.0662.0662 0 0 1 .0332-.0615l4.8114-2.7865a4.4992 4.4992 0 0 1 6.6802 4.6654zm-6.431-6.8791A4.4518 4.4518 0 0 1 16.944 2.893l-.1419.0804-4.7783 2.7818a.7948.7948 0 0 0-.3927.6813v6.7369l-2.02-1.1686a.071.071 0 0 1-.038-.052V6.3653a4.504 4.504 0 0 1 4.446-4.5165zm-3.218 5.7176L10.74 8.7181l-1.4246-.8275 2.8538-1.6465 2.8539 1.6465-1.4246.8275-2.8539 1.6465z"/>
+                </svg>
+                <span class="link-name">ChatGPT</span>
+            </a>
+        </nav>
+    </main>
+
+    <!-- Bottom Status Info -->
+    <div class="status-bar">
+        <div class="status-item">
+            <div class="status-dot"></div>
+            <span>NETWORK: SECURE</span>
+        </div>
+        <div class="status-item">
+            <div class="status-dot" style="background: var(--purple); box-shadow: 0 0 8px var(--purple);"></div>
+            <span>LOCATION: INDIA</span>
+        </div>
+        <div class="status-item">
+            <div class="status-dot" style="background: #00ff66; box-shadow: 0 0 8px #00ff66;"></div>
+            <div class="net-stats">
+                <span>TOT: <span id="netTot" class="highlight-net">--</span> MB/s</span>
+                <span>DL: <span id="netDl" class="highlight-net">--</span> MB/s</span>
+                <span>UL: <span id="netUl" class="highlight-net">--</span> MB/s</span>
+                <span>PING: <span id="netPing" class="highlight-net" style="min-width: 30px;">--</span> ms</span>
+                <span>LAT: <span id="netLat" class="highlight-net" style="min-width: 30px;">--</span> ms</span>
+            </div>
+        </div>
+        <div class="status-item graph-container">
+            <canvas id="sysGraph" width="80" height="24"></canvas>
+            <div class="graph-legend">
+                <span style="color: #00ff66;">NET</span>
+                <span style="color: var(--purple);">CPU</span>
+                <span style="color: var(--cyan);">RAM</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Developer Footer -->
+    <div class="developer-footer">
+        DEVELOPER // <a href="https://tom2001mot.github.io/WDG_3D-Portfolio" target="_blank" rel="noopener">WDG</a>
+    </div>
+
+    <!-- Core Logic -->
+    <script>
+        // --- CLOCK & TIME FORMAT LOGIC ---
+        let is24Hour = true;
+        try {
+            // Retrieve user preference if saved
+            if (localStorage.getItem('timeFormat') === '12') {
+                is24Hour = false;
+            }
+        } catch(e) {} // Handle strict browser security settings gracefully
+
+        const timeDisplay = document.getElementById('timeDisplay');
+        const formatToggle = document.getElementById('formatToggle');
+        const dateDisplay = document.getElementById('dateDisplay');
+
+        function toggleTimeFormat() {
+            is24Hour = !is24Hour;
+            try {
+                localStorage.setItem('timeFormat', is24Hour ? '24' : '12');
+            } catch(e) {}
+            updateSystemClock();
+        }
+
+        // Allow toggling via both the clock and the [ 24H ] badge
+        timeDisplay.addEventListener('click', toggleTimeFormat);
+        formatToggle.addEventListener('click', toggleTimeFormat);
+
+        function updateSystemClock() {
+            const now = new Date();
+            
+            let rawHours = now.getHours();
+            let amPm = '';
+            
+            // Format to 12-hour if requested
+            if (!is24Hour) {
+                amPm = rawHours >= 12 ? ' PM' : ' AM';
+                rawHours = rawHours % 12 || 12; // Converts 0 (midnight) to 12
+            }
+
+            let hours = String(rawHours).padStart(2, '0');
+            let minutes = String(now.getMinutes()).padStart(2, '0');
+            let seconds = String(now.getSeconds()).padStart(2, '0');
+            
+            // Render time with dynamically sized AM/PM text if in 12h mode
+            if (!is24Hour) {
+                timeDisplay.innerHTML = `${hours}:${minutes}:${seconds}<span style="font-size: 0.35em; color: var(--text-dim); letter-spacing: 2px; margin-left: 8px;">${amPm}</span>`;
+            } else {
+                timeDisplay.textContent = `${hours}:${minutes}:${seconds}`;
+            }
+            
+            // Update the toggle button text to show current state
+            formatToggle.textContent = `[ ${is24Hour ? '24H' : '12H'} ]`;
+
+            // Date Formatting
+            const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
+            const dateStr = now.toLocaleDateString('en-GB', options).replace(/\//g, '.');
+            dateDisplay.innerHTML = `SYS.DATE // ${dateStr}`;
+        }
+
+        // Initialize clock and update every second (clear previous intervals for live-reloading environments)
+        updateSystemClock();
+        if (window.clockInterval) clearInterval(window.clockInterval);
+        window.clockInterval = setInterval(updateSystemClock, 1000);
+
+        // --- LIVE DETAILED NETWORK INDICATOR ---
+        let baseDl = navigator.connection ? navigator.connection.downlink : 150;
+        let baseRtt = navigator.connection ? navigator.connection.rtt : 45;
+        
+        // Listen for actual network changes
+        if (navigator.connection) {
+            navigator.connection.addEventListener('change', () => {
+                baseDl = navigator.connection.downlink || 150;
+                baseRtt = navigator.connection.rtt || 45;
+            });
+        }
+
+        function updateSpeedDisplay() {
+            // Jitter calculations for a "live terminal" visual effect (browsers don't update every ms)
+            const jitterDl = baseDl * 0.05;
+            const dlSpeed = Math.max(0, baseDl + (Math.random() * jitterDl * 2) - jitterDl);
+            
+            // Browsers don't report Upload directly, so we simulate it relative to Download (~40%)
+            const baseUl = baseDl * 0.4; 
+            const jitterUl = baseUl * 0.08;
+            const ulSpeed = Math.max(0, baseUl + (Math.random() * jitterUl * 2) - jitterUl);
+            
+            const totalSpeed = dlSpeed + ulSpeed;
+            
+            // Ping (RTT) with slight natural jitter
+            const pingJitter = baseRtt * 0.1;
+            const currentPing = Math.max(1, baseRtt + (Math.random() * pingJitter * 2) - pingJitter);
+            
+            // Latency = Ping + simulated routing/device processing overhead
+            const currentLatency = currentPing + 2 + (Math.random() * 4);
+
+            document.getElementById('netTot').textContent = totalSpeed.toFixed(1);
+            document.getElementById('netDl').textContent = dlSpeed.toFixed(1);
+            document.getElementById('netUl').textContent = ulSpeed.toFixed(1);
+            document.getElementById('netPing').textContent = Math.round(currentPing);
+            document.getElementById('netLat').textContent = Math.round(currentLatency);
+        }
+        
+        updateSpeedDisplay();
+        if (window.speedInterval) clearInterval(window.speedInterval);
+        window.speedInterval = setInterval(updateSpeedDisplay, 800); // Update rapidly for futuristic UI feel
+
+        // --- SYSTEM GRAPH LOGIC (Simulated CPU/RAM + Actual Net) ---
+        const canvas = document.getElementById('sysGraph');
+        const ctx = canvas.getContext('2d');
+        const historyLen = 40;
+        
+        const sysData = {
+            net: new Array(historyLen).fill(0),
+            cpu: new Array(historyLen).fill(20),
+            ram: new Array(historyLen).fill(40)
+        };
+
+        let simCpu = 20;
+        let simRam = 45;
+
+        function drawGraph() {
+            // 1. Update Data
+            // Network (Scale based on an assumed 200mbps max for visual variance). Replaced the missing baseSpeed with baseDl.
+            const currentSpeed = baseDl + (Math.random() * (baseDl * 0.1) * 2) - (baseDl * 0.1);
+            sysData.net.shift();
+            sysData.net.push(Math.min((currentSpeed / 200) * 100, 100));
+
+            // CPU (Simulate load with occasional spikes)
+            sysData.cpu.shift();
+            simCpu += (Math.random() * 10 - 5);
+            if(simCpu < 5) simCpu = 5; 
+            if(simCpu > 60) simCpu -= 5; // Gravity pulling it down
+            if(Math.random() > 0.97) simCpu = 70 + Math.random() * 30; // Random heavy task spike
+            sysData.cpu.push(simCpu);
+
+            // RAM (Simulate stable memory usage with slow drift)
+            sysData.ram.shift();
+            simRam += (Math.random() * 2 - 1);
+            if(simRam < 30) simRam = 30; 
+            if(simRam > 85) simRam = 85;
+            sysData.ram.push(simRam);
+
+            // 2. Draw Graph
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const drawLine = (arr, color) => {
+                ctx.beginPath();
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 1.5;
+                // Add a slight glow
+                ctx.shadowBlur = 4;
+                ctx.shadowColor = color;
+                
+                for(let i = 0; i < arr.length; i++) {
+                    const x = (i / (historyLen - 1)) * canvas.width;
+                    // Invert Y axis (100 is top, 0 is bottom)
+                    const y = canvas.height - (arr[i] / 100) * canvas.height; 
+                    
+                    if(i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+                ctx.shadowBlur = 0; // Reset
+            };
+
+            // Draw lines in order: Background to Foreground
+            drawLine(sysData.ram, 'var(--cyan)');
+            drawLine(sysData.cpu, 'var(--purple)');
+            drawLine(sysData.net, '#00ff66');
+        }
+
+        if (window.graphInterval) clearInterval(window.graphInterval);
+        window.graphInterval = setInterval(drawGraph, 150); // Fast 150ms update interval for smooth scrolling
+
+        // --- GEMINI AI INTEGRATION ---
+        const apiKey = ""; // Implicitly provided by the environment
+        const aiBtn = document.getElementById('aiBtn');
+        const searchInput = document.getElementById('searchInput');
+        const aiTerminal = document.getElementById('aiTerminal');
+        const aiContent = document.getElementById('aiContent');
+        const closeAi = document.getElementById('closeAi');
+
+        // Close the terminal manually
+        closeAi.addEventListener('click', () => {
+            aiTerminal.classList.remove('active');
+        });
+
+        // Exponential backoff strategy for the API call
+        async function fetchGeminiWithRetry(prompt, retries = 5) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                systemInstruction: { 
+                    parts: [{ text: "You are Aegis, an advanced, futuristic AI assistant embedded in a cyber-deck command terminal. Keep responses concise, informative, and maintain a cool, tactical sci-fi persona." }] 
+                }
+            };
+
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    
+                    const data = await response.json();
+                    return data.candidates?.[0]?.content?.parts?.[0]?.text || "NO RESPONSE DETECTED FROM NEURAL NET.";
+                } catch (error) {
+                    if (i === retries - 1) return `ERROR: NEURAL LINK FAILED. ${error.message}`;
+                    await new Promise(res => setTimeout(res, Math.pow(2, i) * 1000));
+                }
+            }
+        }
+
+        // Typing effect for the AI output
+        function typeWriter(text, element, speed = 15) {
+            element.innerHTML = '';
+            let i = 0;
+            const cursor = '<span class="cursor"></span>';
+            
+            function type() {
+                if (i < text.length) {
+                    element.innerHTML = text.substring(0, i + 1) + cursor;
+                    i++;
+                    setTimeout(type, speed);
+                } else {
+                    element.innerHTML = text + cursor;
+                }
+            }
+            type();
+        }
+
+        // Event trigger for AI query
+        aiBtn.addEventListener('click', async () => {
+            const query = searchInput.value.trim();
+            if (!query) return;
+
+            // Expand terminal and render loading state
+            aiTerminal.classList.add('active');
+            aiContent.innerHTML = 'ESTABLISHING SECURE NEURAL LINK...<span class="cursor"></span>';
+            
+            // Execute prompt
+            const responseText = await fetchGeminiWithRetry(query);
+            
+            // Output the response
+            typeWriter(responseText, aiContent);
+        });
+    </script>
+</body>
+</html>
