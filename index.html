@@ -156,16 +156,23 @@
             opacity: 0.5;
         }
 
-        /* --- Time Format Toggle --- */
-        .format-toggle {
+        /* --- Header Toggles (Time & Config) --- */
+        .header-btn {
             cursor: pointer;
-            color: var(--purple);
             margin-left: 12px;
             transition: all 0.3s ease;
             font-weight: 700;
         }
 
-        .format-toggle:hover {
+        .header-btn.time-toggle {
+            color: var(--purple);
+        }
+
+        .header-btn.config-toggle {
+            color: var(--text-dim);
+        }
+
+        .header-btn:hover {
             color: var(--cyan);
             text-shadow: 0 0 10px var(--cyan);
         }
@@ -180,6 +187,7 @@
             position: relative;
             display: flex;
             align-items: center;
+            gap: 12px;
         }
 
         .search-input {
@@ -194,6 +202,13 @@
             outline: none;
             transition: all 0.3s ease;
             box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        .search-input.config-input {
+            padding-left: 20px;
+            font-family: monospace;
+            font-size: 1rem;
+            letter-spacing: 1px;
         }
 
         .search-input:focus {
@@ -422,6 +437,9 @@
                 justify-content: center;
                 flex-wrap: wrap;
             }
+            .header-btn {
+                font-size: 0.85rem;
+            }
         }
 
         @media (max-width: 400px) {
@@ -440,11 +458,7 @@
             }
         }
 
-        /* --- AI Integration Styles --- */
-        .search-form {
-            gap: 12px;
-        }
-
+        /* --- AI Integration & Config Styles --- */
         .ai-btn {
             background: rgba(180, 0, 255, 0.15);
             border: 1px solid var(--purple);
@@ -518,6 +532,42 @@
             0%, 100% { opacity: 1; }
             50% { opacity: 0; }
         }
+
+        /* --- Settings Overlay --- */
+        .config-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .config-overlay.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .config-modal {
+            background: var(--surface);
+            border: 1px solid var(--cyan);
+            border-radius: 16px;
+            padding: 25px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 0 40px rgba(0, 229, 255, 0.2), inset 0 0 20px rgba(0, 229, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; backdrop-filter: blur(0px); }
+            to { opacity: 1; backdrop-filter: blur(8px); }
+        }
+
     </style>
 </head>
 <body>
@@ -534,7 +584,8 @@
             <div class="time" id="timeDisplay" title="Toggle 12H/24H Format">00:00:00</div>
             <div class="date-sys">
                 <span id="dateDisplay">SYS.INIT // LOADING</span>
-                <span id="formatToggle" class="format-toggle" title="Toggle 12H/24H Format">[ 24H ]</span>
+                <span id="formatToggle" class="header-btn time-toggle" title="Toggle 12H/24H Format">[ 24H ]</span>
+                <span id="configBtn" class="header-btn config-toggle" title="System Configuration">[ CONFIG ]</span>
             </div>
         </header>
 
@@ -647,16 +698,38 @@
         DEVELOPER // <a href="https://tom2001mot.github.io/WDG_3D-Portfolio" target="_blank" rel="noopener">WDG</a>
     </div>
 
+    <!-- Configuration Modal Overlay -->
+    <div class="config-overlay" id="configOverlay">
+        <div class="config-modal">
+            <div class="ai-header" style="border-bottom-color: var(--cyan); color: var(--cyan);">
+                <span>SYS.CONFIG // NEURAL LINK SETUP</span>
+                <span style="cursor: pointer; color: var(--text-dim);" id="closeConfig">✕</span>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <label style="font-size: 0.85rem; color: var(--text-dim); letter-spacing: 1px;">GEMINI API KEY:</label>
+                <input type="password" id="apiKeyInput" class="search-input config-input" placeholder="ENTER YOUR API KEY HERE..." autocomplete="off">
+            </div>
+
+            <button type="button" class="ai-btn" id="saveConfigBtn" style="justify-content: center; background: rgba(0, 229, 255, 0.15); border-color: var(--cyan);">
+                <span style="color: var(--cyan);">SAVE CONFIGURATION</span>
+            </button>
+
+            <p style="font-size: 0.75rem; color: var(--text-dim); text-align: center; line-height: 1.4;">
+                Your API key is stored locally in your browser cache. It is never sent to any server other than Google's secure AI endpoints.
+            </p>
+        </div>
+    </div>
+
     <!-- Core Logic -->
     <script>
         // --- CLOCK & TIME FORMAT LOGIC ---
         let is24Hour = true;
         try {
-            // Retrieve user preference if saved
             if (localStorage.getItem('timeFormat') === '12') {
                 is24Hour = false;
             }
-        } catch(e) {} // Handle strict browser security settings gracefully
+        } catch(e) {}
 
         const timeDisplay = document.getElementById('timeDisplay');
         const formatToggle = document.getElementById('formatToggle');
@@ -670,52 +743,76 @@
             updateSystemClock();
         }
 
-        // Allow toggling via both the clock and the [ 24H ] badge
         timeDisplay.addEventListener('click', toggleTimeFormat);
         formatToggle.addEventListener('click', toggleTimeFormat);
 
         function updateSystemClock() {
             const now = new Date();
-            
             let rawHours = now.getHours();
             let amPm = '';
             
-            // Format to 12-hour if requested
             if (!is24Hour) {
                 amPm = rawHours >= 12 ? ' PM' : ' AM';
-                rawHours = rawHours % 12 || 12; // Converts 0 (midnight) to 12
+                rawHours = rawHours % 12 || 12;
             }
 
             let hours = String(rawHours).padStart(2, '0');
             let minutes = String(now.getMinutes()).padStart(2, '0');
             let seconds = String(now.getSeconds()).padStart(2, '0');
             
-            // Render time with dynamically sized AM/PM text if in 12h mode
             if (!is24Hour) {
                 timeDisplay.innerHTML = `${hours}:${minutes}:${seconds}<span style="font-size: 0.35em; color: var(--text-dim); letter-spacing: 2px; margin-left: 8px;">${amPm}</span>`;
             } else {
                 timeDisplay.textContent = `${hours}:${minutes}:${seconds}`;
             }
             
-            // Update the toggle button text to show current state
             formatToggle.textContent = `[ ${is24Hour ? '24H' : '12H'} ]`;
 
-            // Date Formatting
             const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
             const dateStr = now.toLocaleDateString('en-GB', options).replace(/\//g, '.');
             dateDisplay.innerHTML = `SYS.DATE // ${dateStr}`;
         }
 
-        // Initialize clock and update every second (clear previous intervals for live-reloading environments)
         updateSystemClock();
         if (window.clockInterval) clearInterval(window.clockInterval);
         window.clockInterval = setInterval(updateSystemClock, 1000);
+
+        // --- CONFIGURATION MANAGEMENT (API KEY) ---
+        const configBtn = document.getElementById('configBtn');
+        const configOverlay = document.getElementById('configOverlay');
+        const closeConfig = document.getElementById('closeConfig');
+        const apiKeyInput = document.getElementById('apiKeyInput');
+        const saveConfigBtn = document.getElementById('saveConfigBtn');
+
+        // Load existing key on boot
+        let savedApiKey = "";
+        try {
+            savedApiKey = localStorage.getItem('geminiApiKey') || "";
+            apiKeyInput.value = savedApiKey;
+        } catch(e) {}
+
+        // Toggle Config Modal
+        configBtn.addEventListener('click', () => configOverlay.classList.add('active'));
+        closeConfig.addEventListener('click', () => configOverlay.classList.remove('active'));
+        
+        // Save Config
+        saveConfigBtn.addEventListener('click', () => {
+            savedApiKey = apiKeyInput.value.trim();
+            try {
+                localStorage.setItem('geminiApiKey', savedApiKey);
+            } catch(e) {}
+            configOverlay.classList.remove('active');
+        });
+
+        // Close modal if clicked outside the box
+        configOverlay.addEventListener('click', (e) => {
+            if (e.target === configOverlay) configOverlay.classList.remove('active');
+        });
 
         // --- LIVE DETAILED NETWORK INDICATOR ---
         let baseDl = navigator.connection ? navigator.connection.downlink : 150;
         let baseRtt = navigator.connection ? navigator.connection.rtt : 45;
         
-        // Listen for actual network changes
         if (navigator.connection) {
             navigator.connection.addEventListener('change', () => {
                 baseDl = navigator.connection.downlink || 150;
@@ -724,22 +821,15 @@
         }
 
         function updateSpeedDisplay() {
-            // Jitter calculations for a "live terminal" visual effect (browsers don't update every ms)
             const jitterDl = baseDl * 0.05;
             const dlSpeed = Math.max(0, baseDl + (Math.random() * jitterDl * 2) - jitterDl);
-            
-            // Browsers don't report Upload directly, so we simulate it relative to Download (~40%)
             const baseUl = baseDl * 0.4; 
             const jitterUl = baseUl * 0.08;
             const ulSpeed = Math.max(0, baseUl + (Math.random() * jitterUl * 2) - jitterUl);
-            
             const totalSpeed = dlSpeed + ulSpeed;
             
-            // Ping (RTT) with slight natural jitter
             const pingJitter = baseRtt * 0.1;
             const currentPing = Math.max(1, baseRtt + (Math.random() * pingJitter * 2) - pingJitter);
-            
-            // Latency = Ping + simulated routing/device processing overhead
             const currentLatency = currentPing + 2 + (Math.random() * 4);
 
             document.getElementById('netTot').textContent = totalSpeed.toFixed(1);
@@ -751,9 +841,9 @@
         
         updateSpeedDisplay();
         if (window.speedInterval) clearInterval(window.speedInterval);
-        window.speedInterval = setInterval(updateSpeedDisplay, 800); // Update rapidly for futuristic UI feel
+        window.speedInterval = setInterval(updateSpeedDisplay, 800);
 
-        // --- SYSTEM GRAPH LOGIC (Simulated CPU/RAM + Actual Net) ---
+        // --- SYSTEM GRAPH LOGIC ---
         const canvas = document.getElementById('sysGraph');
         const ctx = canvas.getContext('2d');
         const historyLen = 40;
@@ -768,75 +858,63 @@
         let simRam = 45;
 
         function drawGraph() {
-            // 1. Update Data
-            // Network (Scale based on an assumed 200mbps max for visual variance). Replaced the missing baseSpeed with baseDl.
             const currentSpeed = baseDl + (Math.random() * (baseDl * 0.1) * 2) - (baseDl * 0.1);
             sysData.net.shift();
             sysData.net.push(Math.min((currentSpeed / 200) * 100, 100));
 
-            // CPU (Simulate load with occasional spikes)
             sysData.cpu.shift();
             simCpu += (Math.random() * 10 - 5);
             if(simCpu < 5) simCpu = 5; 
-            if(simCpu > 60) simCpu -= 5; // Gravity pulling it down
-            if(Math.random() > 0.97) simCpu = 70 + Math.random() * 30; // Random heavy task spike
+            if(simCpu > 60) simCpu -= 5; 
+            if(Math.random() > 0.97) simCpu = 70 + Math.random() * 30; 
             sysData.cpu.push(simCpu);
 
-            // RAM (Simulate stable memory usage with slow drift)
             sysData.ram.shift();
             simRam += (Math.random() * 2 - 1);
             if(simRam < 30) simRam = 30; 
             if(simRam > 85) simRam = 85;
             sysData.ram.push(simRam);
 
-            // 2. Draw Graph
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
             const drawLine = (arr, color) => {
                 ctx.beginPath();
                 ctx.strokeStyle = color;
                 ctx.lineWidth = 1.5;
-                // Add a slight glow
                 ctx.shadowBlur = 4;
                 ctx.shadowColor = color;
                 
                 for(let i = 0; i < arr.length; i++) {
                     const x = (i / (historyLen - 1)) * canvas.width;
-                    // Invert Y axis (100 is top, 0 is bottom)
                     const y = canvas.height - (arr[i] / 100) * canvas.height; 
-                    
                     if(i === 0) ctx.moveTo(x, y);
                     else ctx.lineTo(x, y);
                 }
                 ctx.stroke();
-                ctx.shadowBlur = 0; // Reset
+                ctx.shadowBlur = 0; 
             };
 
-            // Draw lines in order: Background to Foreground
             drawLine(sysData.ram, 'var(--cyan)');
             drawLine(sysData.cpu, 'var(--purple)');
             drawLine(sysData.net, '#00ff66');
         }
 
         if (window.graphInterval) clearInterval(window.graphInterval);
-        window.graphInterval = setInterval(drawGraph, 150); // Fast 150ms update interval for smooth scrolling
+        window.graphInterval = setInterval(drawGraph, 150);
 
         // --- GEMINI AI INTEGRATION ---
-        const apiKey = ""; // Implicitly provided by the environment
         const aiBtn = document.getElementById('aiBtn');
         const searchInput = document.getElementById('searchInput');
         const aiTerminal = document.getElementById('aiTerminal');
         const aiContent = document.getElementById('aiContent');
         const closeAi = document.getElementById('closeAi');
 
-        // Close the terminal manually
         closeAi.addEventListener('click', () => {
             aiTerminal.classList.remove('active');
         });
 
-        // Exponential backoff strategy for the API call
-        async function fetchGeminiWithRetry(prompt, retries = 5) {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+        async function fetchGeminiWithRetry(prompt, activeKey, retries = 5) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${activeKey}`;
             const payload = {
                 contents: [{ parts: [{ text: prompt }] }],
                 systemInstruction: { 
@@ -852,18 +930,23 @@
                         body: JSON.stringify(payload)
                     });
                     
-                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    if (!response.ok) {
+                        // Throw specific error for invalid API key
+                        if (response.status === 400 || response.status === 403) {
+                            throw new Error("INVALID API KEY. CHECK CONFIGURATION.");
+                        }
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
                     
                     const data = await response.json();
                     return data.candidates?.[0]?.content?.parts?.[0]?.text || "NO RESPONSE DETECTED FROM NEURAL NET.";
                 } catch (error) {
-                    if (i === retries - 1) return `ERROR: NEURAL LINK FAILED. ${error.message}`;
+                    if (i === retries - 1 || error.message.includes("INVALID API KEY")) return `ERROR: NEURAL LINK FAILED. ${error.message}`;
                     await new Promise(res => setTimeout(res, Math.pow(2, i) * 1000));
                 }
             }
         }
 
-        // Typing effect for the AI output
         function typeWriter(text, element, speed = 15) {
             element.innerHTML = '';
             let i = 0;
@@ -881,17 +964,27 @@
             type();
         }
 
-        // Event trigger for AI query
         aiBtn.addEventListener('click', async () => {
             const query = searchInput.value.trim();
             if (!query) return;
 
-            // Expand terminal and render loading state
+            // Expand terminal
             aiTerminal.classList.add('active');
+            
+            // Environment fallback logic (in case it is injected elsewhere), prioritizing user's saved key
+            const environmentKey = ""; 
+            const activeKey = savedApiKey || environmentKey;
+
+            // Stop if no key is configured
+            if (!activeKey) {
+                typeWriter("CRITICAL ERROR: NEURAL LINK DISCONNECTED.<br><br>API KEY MISSING. PLEASE CLICK [ CONFIG ] IN THE SYSTEM HEADER TO ESTABLISH CONNECTION.", aiContent, 10);
+                return;
+            }
+
             aiContent.innerHTML = 'ESTABLISHING SECURE NEURAL LINK...<span class="cursor"></span>';
             
             // Execute prompt
-            const responseText = await fetchGeminiWithRetry(query);
+            const responseText = await fetchGeminiWithRetry(query, activeKey);
             
             // Output the response
             typeWriter(responseText, aiContent);
